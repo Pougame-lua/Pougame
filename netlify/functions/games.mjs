@@ -41,8 +41,10 @@ export default async function handler(request) {
       const name = String(body.name || "MiJuego").slice(0, 50);
       const html = body.html;
 
-      if (typeof html !== "string" ||
-          !html.startsWith("<!DOCTYPE html>")) {
+      if (
+        typeof html !== "string" ||
+        !html.startsWith("<!DOCTYPE html>")
+      ) {
         return json({ error: "HTML no válido." }, 400);
       }
 
@@ -82,6 +84,42 @@ export default async function handler(request) {
       return json({ id, token });
     }
 
+    // FEED: LISTAR PROYECTOS
+    if (request.method === "GET" && !url.searchParams.has("id")) {
+      const { blobs } = await store.list();
+
+      const projects = await Promise.all(
+        blobs.map(async (blob) => {
+          try {
+            const game = await store.get(blob.key, { type: "json" });
+
+            if (!game || typeof game !== "object") {
+              return null;
+            }
+
+            return {
+              id: blob.key,
+              name: String(game.name || "MiJuego").slice(0, 50),
+              createdAt: game.createdAt || null
+            };
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      const games = projects
+        .filter(Boolean)
+        .sort((a, b) => {
+          const dateA = Date.parse(a.createdAt || "") || 0;
+          const dateB = Date.parse(b.createdAt || "") || 0;
+          return dateB - dateA;
+        })
+        .slice(0, 100);
+
+      return json({ games });
+    }
+
     const id = url.searchParams.get("id");
 
     if (!validId(id)) {
@@ -93,7 +131,9 @@ export default async function handler(request) {
     if (!saved) {
       return new Response("Juego no encontrado.", {
         status: 404,
-        headers: { "Content-Type": "text/plain; charset=utf-8" }
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8"
+        }
       });
     }
 
@@ -120,9 +160,13 @@ export default async function handler(request) {
       const expected = Buffer.from(saved.tokenHash, "hex");
       const received = hashToken(token);
 
-      if (expected.length !== received.length ||
-          !timingSafeEqual(expected, received)) {
-        return json({ error: "No tienes permiso para eliminar este juego." }, 403);
+      if (
+        expected.length !== received.length ||
+        !timingSafeEqual(expected, received)
+      ) {
+        return json({
+          error: "No tienes permiso para eliminar este juego."
+        }, 403);
       }
 
       await store.delete(id);
