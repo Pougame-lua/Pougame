@@ -1549,7 +1549,8 @@ if(!response.ok){
   (result.error||responseText||"Error desconocido")
  );
 }
-   const gameURL=location.origin+"/"+result.id;
+   const gameURL = location.origin + "/play.html?id=" +
+  encodeURIComponent(result.id);
 
    // Guardar el enlace y el permiso privado para administrar el juego
    let myGames=[];
