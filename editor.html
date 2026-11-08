@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+</style>
+</head>
+<body>
+<iframe id="game"></iframe>
+
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+if (id && /^[A-Za-z0-9_-]{8,20}$/.test(id)) {
+  document.getElementById("game").src =
+    "/.netlify/functions/games?id=" + encodeURIComponent(id);
+}
+</script>
+</body>
+</html>
