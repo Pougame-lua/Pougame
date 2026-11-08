@@ -20,7 +20,7 @@ function hashToken(token) {
 
 function validId(id) {
   return typeof id === "string" &&
-    /^[A-Za-z0-9_-]{8,20}$/.test(id);
+    /^[A-Za-z0-9_-]{8,20}$/.test(id.trim());
 }
 
 export default async function handler(request) {
