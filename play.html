@@ -16,9 +16,29 @@ iframe {
   border: none;
   display: block;
 }
+  .back-button {
+  background: #292e3d;
+  color: #cbd7f0;
+  border: 1px solid #42495c;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.back-button:hover {
+  background: #35415a;
+  border-color: #729cff;
+  transform: translateY(-1px);
+}
 </style>
 </head>
 <body>
+  <button class="back-button" onclick="location.href='https://pougame-oficial.netlify.app/'">
+  ← Volver
+</button>
 <iframe id="game"></iframe>
 
 <script>
