@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PouGame Studio 1.0</title>
+<script src="https://unpkg.com/fengari-web@0.1.4/dist/fengari-web.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#11131a;color:#eee;font-family:Arial;height:100vh;overflow:hidden}
+header{height:55px;background:#1b1e29;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #303443;gap:15px}
+.logo{font-size:20px;font-weight:bold;color:#80aaff}
+.logo span{color:white}
+main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);height:calc(100vh - 55px)}
+.panel{padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.editor{border-right:1px solid #303443}
+h3{font-size:13px;color:#abb5ca;margin:0}
+button{background:#292e3d;color:white;border:1px solid #42495c;padding:8px 11px;border-radius:6px;cursor:pointer}
+button:hover{background:#424b62}
+.run{background:#287b50}
+.stop{background:#913e48}
+.export{background:#315a9c}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.workspace{display:grid;grid-template-columns:125px minmax(0,1fr);gap:9px;flex:1;min-height:0}
+.sidebar{background:#171a23;border:1px solid #353b4d;border-radius:7px;overflow:auto;padding:8px}
+.side-title{font-size:11px;color:#8290aa;margin:9px 0 6px}
+.file-item{display:block;width:100%;text-align:left;margin:3px 0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item.active{background:#315a9c}
+#code{display:block;width:100%;height:100%;min-width:0;min-height:0;resize:none;background:#171a23;color:#d8e2ff;border:1px solid #353b4d;border-radius:7px;padding:16px;font:14px/1.65 Consolas,monospace;outline:none}
+#code:focus{border-color:#729cff}
+#code-area{display:block;min-width:0;min-height:0;height:100%;overflow:hidden}
+#preview-area{display:none;min-width:0;min-height:0;height:100%;background:#171a23;border:1px solid #353b4d;border-radius:7px;padding:12px;overflow:auto;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#preview-image{max-width:100%;max-height:75%;object-fit:contain;image-rendering:auto}
+.preview-info{font-size:12px;color:#aab5ca;text-align:center;overflow-wrap:anywhere}
+.canvas-wrap{flex:1;min-height:180px;background:#090b10;border:1px solid #353b4d;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+canvas{width:100%;height:100%;object-fit:contain;outline:none}
+canvas:focus{border:1px solid #729cff}
+.console{height:110px;background:#090b10;border:1px solid #353b4d;border-radius:7px;padding:9px;overflow:auto;font:12px Consolas,monospace;color:#a9e8b9}
+.error{color:#ff8585}
+.info{color:#91baff}
+.status{font-size:11px;color:#9da5b8}
+.asset{font-size:11px;color:#c5cce0;padding:4px;overflow-wrap:anywhere}
+.asset-item{display:block;width:100%;text-align:left;margin:3px 0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.asset-item.active{background:#315a9c}
+button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:750px){
+body{overflow:auto;height:auto}
+main{grid-template-columns:1fr;height:auto}
+.panel{height:75vh}
+.editor{border:0}
+.workspace{grid-template-columns:110px minmax(0,1fr)}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">🐾 Pou<span>Game</span> Studio</div>
+ <span class="status">1.0 · Lua Game Engine</span>
+</header>
+<main>
+<section class="panel editor">
+ <h3>EXPLORADOR DE PROYECTO</h3>
+ <div class="toolbar">
+  <button class="run" onclick="runGame()">▶ Ejecutar</button>
+  <button class="stop" onclick="stopGame()">■ Detener</button>
+  <button class="export" onclick="saveCurrentFile()" id="saveButton">💾 Guardar archivo</button>
+  <button class="export" onclick="exportPou()">📦 Exportar .pou</button>
+  <button class="run" onclick="publishHTML()">🌐 Crear index.html</button>
+  <button class="run" onclick="publishHTML(true)">🌐 Compartir online</button>
+  <button class="export" onclick="openPou()">📂 Abrir .pou</button>
+ </div>
+ <div class="workspace">
+  <div class="sidebar">
+   <div class="side-title">ARCHIVOS</div>
+   <button onclick="newLua()">+ Nuevo Lua</button>
+   <button onclick="importTextFiles()">+ Importar archivos</button>
+   <div id="fileList"></div>
+   <div class="side-title">ASSETS</div>
+   <button onclick="importAssets()">+ Importar assets</button>
+   <div id="assetList"></div>
+<div class="side-title">PROYECTO</div>
+<input
+ id="projectNameInput"
+ type="text"
+ value="MiJuego"
+ maxlength="50"
+ placeholder="Nombre del proyecto"
+ style="width:100%;background:#090b10;color:white;border:1px solid #42495c;border-radius:6px;padding:8px;outline:none"
+>
+<div class="asset" id="projectNameDisplay">Nombre del proyecto</div>
+  </div>
+  <div id="code-area">
+   <textarea id="code" spellcheck="false"></textarea>
+  </div>
+  <div id="preview-area">
+   <img id="preview-image" alt="Vista previa">
+   <div class="preview-info" id="preview-info"></div>
+   <div class="status">Vista previa: imagen de solo lectura</div>
+  </div>
+ </div>
+ <div class="status" id="fileStatus">main.lua</div>
+ <input id="assetInput" type="file" multiple hidden>
+ <input id="textInput" type="file" multiple hidden>
+ <input id="projectInput" type="file" accept=".pou" hidden>
+</section>
+<section class="panel">
+ <h3>VISTA DEL JUEGO</h3>
+ <div class="toolbar">
+  <button onclick="clearScreen()">Limpiar</button>
+  <span class="status" id="gameStatus">Detenido</span>
+ </div>
+ <div class="canvas-wrap">
+  <canvas id="game" width="800" height="600" tabindex="0"></canvas>
+ </div>
+ <h3>CONSOLA</h3>
+ <div class="console" id="console"></div>
+</section>
+</main>
+<script src="script.js"></script>
+</body>
+</html>

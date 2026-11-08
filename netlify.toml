@@ -1,0 +1,13 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/games"
+  to = "/.netlify/functions/games"
+  status = 200
+
+[[redirects]]
+  from = "/:id"
+  to = "/.netlify/functions/games?id=:id"
+  status = 200
