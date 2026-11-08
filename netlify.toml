@@ -1,4 +1,3 @@
-
 [build]
   publish = "."
   functions = "netlify/functions"
@@ -9,7 +8,6 @@
   status = 200
 
 [[redirects]]
-  from = "/:id([A-Za-z0-9_-]{10})"
+  from = "/game/:id"
   to = "/.netlify/functions/games?id=:id"
   status = 200
-  force = true
