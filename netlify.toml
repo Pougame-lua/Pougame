@@ -11,3 +11,4 @@
   from = "/:id"
   to = "/.netlify/functions/games?id=:id"
   status = 200
+  force = true
